@@ -1,0 +1,73 @@
+[New Thread 14176.0x4b04]
+[New Thread 14176.0x2294]
+[New Thread 14176.0x56e8]
+[New Thread 14176.0x5484]
+[New Thread 14176.0x4b98]
+[New Thread 14176.0x507c]
+[New Thread 14176.0x2f14]
+[New Thread 14176.0x5088]
+[New Thread 14176.0xb04]
+[New Thread 14176.0x484c]
+[Thread 14176.0xb04 exited with code 0]
+[Thread 14176.0x484c exited with code 0]
+[New Thread 14176.0x3474]
+[Thread 14176.0x2f14 exited with code 0]
+[Thread 14176.0x5088 exited with code 0]
+[New Thread 14176.0x4f58]
+[New Thread 14176.0x54cc]
+[New Thread 14176.0x350c]
+[New Thread 14176.0x2500]
+[Thread 14176.0x350c exited with code 0]
+[Thread 14176.0x2500 exited with code 0]
+[Thread 14176.0x4f58 exited with code 0]
+[Thread 14176.0x54cc exited with code 0]
+warning: HEAP[example_vgm_player.exe]: 
+warning: Heap block at 0000000002779F00 modified at 000000000277A710 past requested size of 800
+
+Thread 1 received signal SIGTRAP, Trace/breakpoint trap.
+0x00007ffe003dfb5f in ntdll!RtlValidateHeap () from C:\Windows\SYSTEM32\ntdll.dll
+
+
+--- CRASH INFO ---
+
+
+--- Frame 0 (Resampler) ---
+#0  0x00007ffe003dfb5f in ntdll!RtlValidateHeap () from C:\Windows\SYSTEM32\ntdll.dll
+debug.gdb:11: Error in sourced command file:
+No symbol "CAA" in current context.
+#0  0x00007ffe003dfb5f in ntdll!RtlValidateHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#1  0x00007ffe003df33a in ntdll!RtlValidateHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#2  0x00007ffe003df0b7 in ntdll!RtlValidateHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#3  0x00007ffe003de570 in ntdll!RtlGetUserInfoHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#4  0x00007ffe0032ba6e in ntdll!RtlAllocateHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#5  0x00007ffe00332871 in ntdll!RtlFreeHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#6  0x00007ffdfe9fd61c in msvcrt!free () from C:\Windows\System32\msvcrt.dll
+#7  0x00007ff60283f6ef in ModizerViz::Init (this=0x7ff602a91cd0 <modizerViz>) at modizer_viz/modizer_viz.cpp:75
+#8  0x00007ff602836316 in main () at main.cpp:1011
+#0  0x00007ffe003dfb5f in ntdll!RtlValidateHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#1  0x00007ffe003df33a in ntdll!RtlValidateHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#2  0x00007ffe003df0b7 in ntdll!RtlValidateHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#3  0x00007ffe003de570 in ntdll!RtlGetUserInfoHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#4  0x00007ffe0032ba6e in ntdll!RtlAllocateHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#5  0x00007ffe00332871 in ntdll!RtlFreeHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#6  0x00007ffdfe9fd61c in msvcrt!free () from C:\Windows\System32\msvcrt.dll
+#7  0x00007ff60283f6ef in ModizerViz::Init (this=0x7ff602a91cd0 <modizerViz>) at modizer_viz/modizer_viz.cpp:75
+#8  0x00007ff602836316 in main () at main.cpp:1011
+#0  0x00007ffe003dfb5f in ntdll!RtlValidateHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#1  0x00007ffe003df33a in ntdll!RtlValidateHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#2  0x00007ffe003df0b7 in ntdll!RtlValidateHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#3  0x00007ffe003de570 in ntdll!RtlGetUserInfoHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#4  0x00007ffe0032ba6e in ntdll!RtlAllocateHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#5  0x00007ffe00332871 in ntdll!RtlFreeHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#6  0x00007ffdfe9fd61c in msvcrt!free () from C:\Windows\System32\msvcrt.dll
+#7  0x00007ff60283f6ef in ModizerViz::Init (this=0x7ff602a91cd0 <modizerViz>) at modizer_viz/modizer_viz.cpp:75
+#8  0x00007ff602836316 in main () at main.cpp:1011
+#0  0x00007ffe003dfb5f in ntdll!RtlValidateHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#1  0x00007ffe003df33a in ntdll!RtlValidateHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#2  0x00007ffe003df0b7 in ntdll!RtlValidateHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#3  0x00007ffe003de570 in ntdll!RtlGetUserInfoHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#4  0x00007ffe0032ba6e in ntdll!RtlAllocateHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#5  0x00007ffe00332871 in ntdll!RtlFreeHeap () from C:\Windows\SYSTEM32\ntdll.dll
+#6  0x00007ffdfe9fd61c in msvcrt!free () from C:\Windows\System32\msvcrt.dll
+#7  0x00007ff60283f6ef in ModizerViz::Init (this=0x7ff602a91cd0 <modizerViz>) at modizer_viz/modizer_viz.cpp:75
+#8  0x00007ff602836316 in main () at main.cpp:1011

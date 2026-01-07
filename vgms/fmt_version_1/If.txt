@@ -1,0 +1,55 @@
+***********************************************
+* VGM music package                           *
+* http://vgmrips.net/                         *
+***********************************************
+Game name:           If
+System:              FM Towns
+Music hardware:      YM2612
+
+Music author:        Keishi Yonao,
+                     Yasuo Ito
+Game developer:      Active Software
+Game publisher:      Active Software
+Game release date:   1993-04-29
+
+Package created by:  Denjhang
+Package version:     1.00
+
+Song list, in sound test order:
+Song                        Length |Total |Loop
+-----------------------------------+------+----
+01 Active Software Logo             0:02   -
+02 Main Menu                        0:34   0:27
+03 Scenario Intro                   1:23   1:07
+04 BGM 1 [Kazuya's Gloomy Day]      0:37   0:29
+05 BGM 2 [Kazuya's Gloomy Day]      0:43   0:35
+06 Ending [Kazuya's Gloomy Day]     1:49   -
+07 BGM 1 [TriAngle]                 1:12   1:03
+08 BGM 2 [TriAngle]                 0:43   0:40
+09 Ending [TriAngle]                2:16   -
+10 BGM 1 [Kikyou's Flower]          1:02   0:53
+11 BGM 2 [Kikyou's Flower]          1:37   1:13
+12 Ending [Kikyou's Flower]         2:27   -
+13 BGM 1 [Muddy Rescue Operation]   1:07   0:59
+14 BGM 2 [Muddy Rescue Operation]   1:01   0:58
+15 Ending [Muddy Rescue Operation]  1:36   -
+
+Total Length                       18:09  26:32
+
+
+
+Notes:
+This pack was made using Tsugaru_TOWNS.
+The song data is from the PC98 version of "IF". 
+I personally think this version is better 
+than the YM2203 because the square waves 
+are replaced by FM synthesis, 
+and the note strength is more reasonable.
+By the way, there is also an "IF" port of 
+this game for DOS called Love Story, 
+but the music is so terrible 
+I'm not going to record that one.
+
+
+Package history:
+1.00 2025-10-10 Denjhang: Initial release.

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Development Log: Fixing the `example_vgm_player`</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+            line-height: 1.6;
+            color: #24292e;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px;
+            padding-bottom: 50px; /* Add padding to prevent content from being hidden by the progress bar */
+        }
+        #progress-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background-color: #f0f0f0;
+            z-index: 1000;
+            cursor: pointer;
+        }
+        #progress-bar {
+            height: 100%;
+            width: 0;
+            background-color: #0366d6;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+        h1 { font-size: 2em; border-bottom: 1px solid #eaecef; padding-bottom: .3em; }
+        h2 { font-size: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: .3em; }
+        h3 { font-size: 1.25em; }
+        h4 { font-size: 1em; }
+        a { color: #0366d6; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        code {
+            padding: .2em .4em;
+            margin: 0;
+            font-size: 85%;
+            background-color: rgba(27,31,35,.05);
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+        }
+        pre {
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+            background-color: #f6f8fa;
+            border-radius: 3px;
+        }
+        pre code {
+            display: inline;
+            padding: 0;
+            margin: 0;
+            overflow: visible;
+            line-height: inherit;
+            word-wrap: normal;
+            background-color: transparent;
+            border: 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 1em;
+            margin-bottom: 1em;
+        }
+        th, td {
+            border: 1px solid #dfe2e5;
+            padding: 6px 13px;
+        }
+        th {
+            font-weight: 600;
+            background-color: #f6f8fa;
+        }
+        ul, ol { padding-left: 2em; }
+        li { margin-top: .25em; }
+
+        /* Hierarchical TOC styles */
+        .toc-level-1 { font-weight: 500; }
+        .toc-level-2 { margin-left: 1.5em; }
+        .toc-level-3 { margin-left: 3em; }
+        .toc-level-4 { margin-left: 4.5em; }
+        .toc-level-1 > a { font-size: 1.1em; }
+        .toc-level-2 > a { font-size: 1.0em; }
+        .toc-level-3 > a { font-size: 0.95em; }
+        .toc-level-4 > a { font-size: 0.9em; color: #333; }
+
+        blockquote {
+            margin-left: 0;
+            padding-left: 1em;
+            color: #6a737d;
+            border-left: .25em solid #dfe2e5;
+        }
+    </style>
+</head>
+<body>
+<div id="progress-container">
+    <div id="progress-bar"></div>
+</div>
+<h1 id="development-log-fixing-the-example-vgm-player">Development Log: Fixing the <code>example_vgm_player</code></h1>
+<p>This document details the debugging process undertaken to fix the <code>example_vgm_player</code> application, which was initially non-functional. The process involved diagnosing and resolving a series of issues, from build-time linker errors to subtle runtime bugs.</p>
+<h2 id="1">1. Initial State</h2>
+<p>The project failed to build and run correctly. The primary goal was to make the VGM player functional, which included:</p>
+<ul>
+<li>Compiling the application successfully.</li>
+<li>Initializing the audio system.</li>
+<li>Playing VGM music with audible sound.</li>
+</ul>
+<h2 id="2">2. Build System and Linker Errors</h2>
+<p>The first major hurdle was a linker error indicating a symbol conflict. The <code>libaudio.a</code> static library contained multiple implementations of the same audio driver functions.</p>
+<p><strong>Solution:</strong></p>
+<ul>
+<li>Modified <code>libvgm-player/Makefile</code> to isolate a single audio driver (DirectSound) for the Windows build.</li>
+<li>Commented out the compilation of other drivers (e.g., <code>AudDrv_WaveWriter.o</code>) to ensure only one implementation was archived into <code>libaudio.a</code>.</li>
+</ul>
+<pre><code class="language-makefile"># In libvgm-player/Makefile
+# ... (other objects)
+#AUDDRV_OBJS += $(OBJDIR)/AudDrv_WaveWriter.o
+#AUDDRV_OBJS += $(OBJDIR)/AudDrv_WavWriter.o
+# ...
+</code></pre>
+<p>This resolved the linker errors and allowed the application to compile.</p>
+<h2 id="3">3. Runtime Initialization Failures</h2>
+<p>After fixing the build, the application would run but immediately crash or fail during audio initialization. Debugging with <code>printf</code> statements revealed two key problems:</p>
+<h3 id="3-1">3.1. Incorrect Audio Driver Index</h3>
+<p>The application was attempting to use <code>AudioOutDrv = 1</code>, but since we had isolated a single driver, the correct index was <code>0</code>.</p>
+<p><strong>Solution:</strong></p>
+<ul>
+<li>In <code>examples/example_vgm_player/main.cpp</code>, changed the <code>AudioOutDrv</code> variable to <code>0</code>.</li>
+</ul>
+<pre><code class="language-cpp">// In examples/example_vgm_player/main.cpp
+UINT8 AudioOutDrv = 0; // Was 1
+</code></pre>
+<h3 id="3-2">3.2. DirectSound Driver Failure (Error <code>0xF1</code>)</h3>
+<p>The <code>StartAudioDevice</code> function consistently returned an error code <code>0xF1</code>. Investigating <code>libvgm-player/audio/AudDrv_DSound.cpp</code> revealed that the DirectSound driver requires a valid window handle (<code>HWND</code>) to function correctly. The application was attempting to start the audio device <em>before</em> the main window was created.</p>
+<p><strong>Solution:</strong></p>
+<ul>
+<li>Reordered the initialization logic in <code>examples/example_vgm_player/main.cpp</code>.</li>
+<li>Ensured the GLFW window was created first.</li>
+<li>Retrieved the native Win32 <code>HWND</code> from the GLFW window.</li>
+<li>Passed the <code>HWND</code> to the DirectSound driver using the <code>DSound_SetHWnd</code> function <em>before</em> calling <code>StartAudioDevice</code>.</li>
+</ul>
+<pre><code class="language-cpp">// In examples/example_vgm_player/main.cpp
+
+// ... create GLFW window ...
+#if defined(_WIN32)
+    HWND hWnd = glfwGetWin32Window(window);
+    DSound_SetHWnd(hWnd);
+#endif
+
+// Now start the audio device
+Res = StartAudioDevice(AudioOutDrv, &amp;VgmPlayer.SampleRate, &amp;VgmPlayer.Channels);
+// ...
+</code></pre>
+<h2 id="4">4. The Final Bug: Missing Function Prototype</h2>
+<p>Despite the reordering, the <code>0xF1</code> error persisted. The <code>DSound_SetHWnd(hWnd)</code> call seemed to have no effect. This pointed to a subtle C/C++ compilation issue.</p>
+<p>The prototype for <code>DSound_SetHWnd</code> is located in <code>AudioStream_SpcDrvFuns.h</code> and is conditionally compiled, guarded by the <code>AUDDRV_DSOUND</code> preprocessor macro. When <code>main.cpp</code> was compiled, this macro was not defined, so the compiler never saw the function prototype.</p>
+<p>Without a prototype, the C++ compiler "guessed" the function signature, assuming it took no arguments. As a result, the <code>hWnd</code> argument was never actually passed to the function, the driver's internal <code>hWnd</code> remained <code>NULL</code>, and initialization failed.</p>
+<p><strong>Solution:</strong></p>
+<ul>
+<li>Added the <code>-DAUDDRV_DSOUND</code> flag to the <code>CXXFLAGS</code> in <code>examples/example_vgm_player/Makefile</code>.</li>
+</ul>
+<pre><code class="language-makefile"># In examples/example_vgm_player/Makefile
+CXXFLAGS = -std=c++11 -I... -DAUDDRV_DSOUND
+</code></pre>
+<p>This ensured the compiler saw the correct function prototype for <code>DSound_SetHWnd</code>, allowing the <code>HWND</code> to be passed correctly. With this final change, the audio device initialized successfully, and the VGM player became fully functional.</p>
+<h2 id="5">5. Conclusion</h2>
+<p>The debugging process was a journey from high-level linker issues to a very specific, low-level C++ compilation bug. The key takeaways were:</p>
+<ul>
+<li><strong>Isolate Dependencies:</strong> Simplify the build to reduce variables, as was done with the audio drivers.</li>
+<li><strong>Trace Execution:</strong> Use <code>printf</code> or a debugger to understand the runtime flow and pinpoint the exact point of failure.</li>
+<li><strong>Read the Source:</strong> When a library function fails, read its implementation to understand its requirements (like the <code>HWND</code> dependency).</li>
+<li><strong>Compiler Warnings are Clues:</strong> The lack of a warning about an unknown function signature was a missed clue. Enabling stricter warnings could have caught this earlier. The root cause was a missing preprocessor definition that hid a function prototype from the compiler.</li>
+</ul>
+<p>This systematic approach allowed for the successful resolution of a complex series of cascading failures.</p>
+
+<script>
+    window.onscroll = function() {
+        updateProgressBar();
+    };
+
+    document.getElementById("progress-container").onclick = function(event) {
+        var rect = this.getBoundingClientRect();
+        var clickX = event.clientX - rect.left;
+        var percentage = clickX / this.offsetWidth;
+        var height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        window.scrollTo(0, height * percentage);
+    };
+
+    function updateProgressBar() {
+        var winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+        var height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        var scrolled = (winScroll / height) * 100;
+        document.getElementById("progress-bar").style.width = scrolled + "%";
+    }
+</script>
+</body>
+</html>

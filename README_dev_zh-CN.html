@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>开发日志：修复 `example_vgm_player`</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+            line-height: 1.6;
+            color: #24292e;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px;
+            padding-bottom: 50px; /* Add padding to prevent content from being hidden by the progress bar */
+        }
+        #progress-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background-color: #f0f0f0;
+            z-index: 1000;
+            cursor: pointer;
+        }
+        #progress-bar {
+            height: 100%;
+            width: 0;
+            background-color: #0366d6;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+        h1 { font-size: 2em; border-bottom: 1px solid #eaecef; padding-bottom: .3em; }
+        h2 { font-size: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: .3em; }
+        h3 { font-size: 1.25em; }
+        h4 { font-size: 1em; }
+        a { color: #0366d6; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        code {
+            padding: .2em .4em;
+            margin: 0;
+            font-size: 85%;
+            background-color: rgba(27,31,35,.05);
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+        }
+        pre {
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+            background-color: #f6f8fa;
+            border-radius: 3px;
+        }
+        pre code {
+            display: inline;
+            padding: 0;
+            margin: 0;
+            overflow: visible;
+            line-height: inherit;
+            word-wrap: normal;
+            background-color: transparent;
+            border: 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 1em;
+            margin-bottom: 1em;
+        }
+        th, td {
+            border: 1px solid #dfe2e5;
+            padding: 6px 13px;
+        }
+        th {
+            font-weight: 600;
+            background-color: #f6f8fa;
+        }
+        ul, ol { padding-left: 2em; }
+        li { margin-top: .25em; }
+
+        /* Hierarchical TOC styles */
+        .toc-level-1 { font-weight: 500; }
+        .toc-level-2 { margin-left: 1.5em; }
+        .toc-level-3 { margin-left: 3em; }
+        .toc-level-4 { margin-left: 4.5em; }
+        .toc-level-1 > a { font-size: 1.1em; }
+        .toc-level-2 > a { font-size: 1.0em; }
+        .toc-level-3 > a { font-size: 0.95em; }
+        .toc-level-4 > a { font-size: 0.9em; color: #333; }
+
+        blockquote {
+            margin-left: 0;
+            padding-left: 1em;
+            color: #6a737d;
+            border-left: .25em solid #dfe2e5;
+        }
+    </style>
+</head>
+<body>
+<div id="progress-container">
+    <div id="progress-bar"></div>
+</div>
+<h1 id="example-vgm-player">开发日志：修复 <code>example_vgm_player</code></h1>
+<p>本文档详细记录了修复 <code>example_vgm_player</code> 应用的调试过程。该应用最初无法正常工作。整个过程涉及诊断并解决一系列问题，从构建时的链接器错误到微妙的运行时 Bug。</p>
+<h2 id="1">1. 初始状态</h2>
+<p>项目最初无法正确构建和运行。主要目标是使 VGM 播放器能够正常工作，包括：</p>
+<ul>
+<li>成功编译应用程序。</li>
+<li>初始化音频系统。</li>
+<li>播放 VGM 音乐并能听到声音。</li>
+</ul>
+<h2 id="2">2. 构建系统与链接器错误</h2>
+<p>第一个主要障碍是链接器错误，提示存在符号冲突。静态库 <code>libaudio.a</code> 中包含了同一音频驱动函数的多个实现。</p>
+<p><strong>解决方案：</strong></p>
+<ul>
+<li>修改 <code>libvgm-player/Makefile</code>，为 Windows 构建隔离出单个音频驱动（DirectSound）。</li>
+<li>注释掉其他驱动（如 <code>AudDrv_WaveWriter.o</code>）的编译，确保只有一个实现被归档到 <code>libaudio.a</code> 中。</li>
+</ul>
+<pre><code class="language-makefile">#位于 libvgm-player/Makefile
+# ... (其他对象)
+#AUDDRV_OBJS += $(OBJDIR)/AudDrv_WaveWriter.o
+#AUDDRV_OBJS += $(OBJDIR)/AudDrv_WavWriter.o
+# ...
+</code></pre>
+<p>这解决了链接器错误，使应用程序得以成功编译。</p>
+<h2 id="3">3. 运行时初始化失败</h2>
+<p>修复构建问题后，应用程序可以运行，但在音频初始化期间会立即崩溃或失败。通过 <code>printf</code> 语句进行调试，发现了两个关键问题：</p>
+<h3 id="3-1">3.1. 音频驱动索引不正确</h3>
+<p>应用程序试图使用 <code>AudioOutDrv = 1</code>，但由于我们只隔离了单个驱动，正确的索引应该是 <code>0</code>。</p>
+<p><strong>解决方案：</strong></p>
+<ul>
+<li>在 <code>examples/example_vgm_player/main.cpp</code> 中，将 <code>AudioOutDrv</code> 变量的值更改为 <code>0</code>。</li>
+</ul>
+<pre><code class="language-cpp">// 位于 examples/example_vgm_player/main.cpp
+UINT8 AudioOutDrv = 0; // 原本是 1
+</code></pre>
+<h3 id="3-2">3.2. DirectSound 驱动失败（错误码 <code>0xF1</code>）</h3>
+<p><code>StartAudioDevice</code> 函数一直返回错误码 <code>0xF1</code>。通过研究 <code>libvgm-player/audio/AudDrv_DSound.cpp</code>，发现 DirectSound 驱动需要一个有效的窗口句柄（<code>HWND</code>）才能正常工作。而应用程序在创建主窗口<em>之前</em>就试图启动音频设备。</p>
+<p><strong>解决方案：</strong></p>
+<ul>
+<li>重新排列 <code>examples/example_vgm_player/main.cpp</code> 中的初始化逻辑。</li>
+<li>确保首先创建 GLFW 窗口。</li>
+<li>从 GLFW 窗口获取原生的 Win32 <code>HWND</code>。</li>
+<li>在调用 <code>StartAudioDevice</code> <em>之前</em>，通过 <code>DSound_SetHWnd</code> 函数将 <code>HWND</code> 传递给 DirectSound 驱动。</li>
+</ul>
+<pre><code class="language-cpp">// 位于 examples/example_vgm_player/main.cpp
+
+// ... 创建 GLFW 窗口 ...
+#if defined(_WIN32)
+    HWND hWnd = glfwGetWin32Window(window);
+    DSound_SetHWnd(hWnd);
+#endif
+
+// 现在启动音频设备
+Res = StartAudioDevice(AudioOutDrv, &amp;VgmPlayer.SampleRate, &amp;VgmPlayer.Channels);
+// ...
+</code></pre>
+<h2 id="4">4. 最终的 Bug：缺失函数原型</h2>
+<p>尽管调整了顺序，<code>0xF1</code> 错误依旧存在。<code>DSound_SetHWnd(hWnd)</code> 的调用似乎没有产生任何效果。这指向一个微妙的 C/C++ 编译问题。</p>
+<p><code>DSound_SetHWnd</code> 的函数原型位于 <code>AudioStream_SpcDrvFuns.h</code> 中，并由预处理器宏 <code>AUDDRV_DSOUND</code> 条件性地编译。在编译 <code>main.cpp</code> 时，这个宏没有被定义，因此编译器从未看到该函数的原型。</p>
+<p>在没有原型的情况下，C++ 编译器“猜测”了函数签名，假定它不接受任何参数。结果，<code>hWnd</code> 参数从未被实际传递给函数，驱动内部的 <code>hWnd</code> 保持为 <code>NULL</code>，初始化因此失败。</p>
+<p><strong>解决方案：</strong></p>
+<ul>
+<li>在 <code>examples/example_vgm_player/Makefile</code> 的 <code>CXXFLAGS</code> 中添加 <code>-DAUDDRV_DSOUND</code> 标志。</li>
+</ul>
+<pre><code class="language-makefile"># 位于 examples/example_vgm_player/Makefile
+CXXFLAGS = -std=c++11 -I... -DAUDDRV_DSOUND
+</code></pre>
+<p>这确保了编译器能够看到 <code>DSound_SetHWnd</code> 的正确函数原型，从而正确传递 <code>HWND</code>。完成这最后一步修改后，音频设备成功初始化，VGM 播放器完全恢复功能。</p>
+<h2 id="5">5. 结论</h2>
+<p>整个调试过程是一次从高层链接问题到非常具体的底层 C++ 编译 Bug 的探索之旅。关键的经验教训包括：</p>
+<ul>
+<li><strong>隔离依赖：</strong> 简化构建以减少变量，就像处理音频驱动时所做的那样。</li>
+<li><strong>追踪执行：</strong> 使用 <code>printf</code> 或调试器来理解运行时流程，并精确定位失败点。</li>
+<li><strong>阅读源码：</strong> 当库函数失败时，阅读其实现以了解其需求（如此处的 <code>HWND</code> 依赖）。</li>
+<li><strong>编译器警告是线索：</strong> 当时缺少关于未知函数签名的警告是一个被忽略的线索。启用更严格的警告可能会更早地发现这个问题。根本原因是一个缺失的预处理器定义，它向编译器隐藏了函数原型。</li>
+</ul>
+<p>这种系统性的方法成功地解决了一系列复杂的连锁故障。</p>
+
+<script>
+    window.onscroll = function() {
+        updateProgressBar();
+    };
+
+    document.getElementById("progress-container").onclick = function(event) {
+        var rect = this.getBoundingClientRect();
+        var clickX = event.clientX - rect.left;
+        var percentage = clickX / this.offsetWidth;
+        var height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        window.scrollTo(0, height * percentage);
+    };
+
+    function updateProgressBar() {
+        var winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+        var height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        var scrolled = (winScroll / height) * 100;
+        document.getElementById("progress-bar").style.width = scrolled + "%";
+    }
+</script>
+</body>
+</html>
